@@ -8,6 +8,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using  Hellang.Middleware.ProblemDetails;
+using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
@@ -43,8 +44,7 @@ builder.Services.AddControllers(options =>
 #endregion
 
 #region Infrastructure
-
-
+builder.Services.AddInfrastructure(builder.Configuration);
 #endregion
 
 #region Application
@@ -73,11 +73,6 @@ builder.Services.AddApiVersioning(options =>
 
 #endregion
 
-#region ProblemDetails
-
-//builder.Services.AddProblemDetails();
-
-#endregion
 
 #region Routing
 
