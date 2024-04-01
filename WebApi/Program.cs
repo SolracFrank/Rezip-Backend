@@ -7,9 +7,13 @@ using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using  Hellang.Middleware.ProblemDetails;
+using Hellang.Middleware.ProblemDetails;
 using Infrastructure;
 using Application;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using WebApi.OpenApi;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
@@ -18,7 +22,7 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .MinimumLevel.Information()
     .WriteTo.Console(LogEventLevel.Debug, builder.Configuration["Logging:OutputTemplate"], theme: SystemConsoleTheme.Colored)
-    .WriteTo.File(Path.Combine(AppContext.BaseDirectory, builder.Configuration["Loggin:Dir"]),
+    .WriteTo.File(Path.Combine(AppContext.BaseDirectory, builder.Configuration["Logging:Dir"]),
     rollingInterval: RollingInterval.Day, fileSizeLimitBytes: null).CreateLogger();
 
 builder.Host.UseSerilog();
@@ -28,7 +32,6 @@ builder.Host.UseSerilog();
 builder.Services.AddControllers();
 builder.Services.AddControllers(options =>
 {
- 
     options.Filters.Add(new ProducesResponseTypeAttribute(typeof(ProblemDetails),
         StatusCodes.Status500InternalServerError));
 }).AddJsonOptions(options =>
@@ -53,26 +56,74 @@ builder.Services.AddApplication();
 #endregion
 
 #region Swagger
+builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+builder.Services.AddSwaggerGen(
+    options =>
+    {
+        var securitySchema = new OpenApiSecurityScheme
+        {
+            Description =
+            "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        };
 
+        options.AddSecurityDefinition("Bearer", securitySchema);
+
+        var securityRequirement = new OpenApiSecurityRequirement
+        {
+             { securitySchema, new[] { "Bearer" } }
+        };
+        options.AddSecurityRequirement(securityRequirement);
+
+
+        options.OperationFilter<SwaggerDefaultValues>();
+
+        var fileName = typeof(Program).Assembly.GetName().Name + ".xml";
+        var filePath = Path.Combine(AppContext.BaseDirectory, fileName);
+
+        // integrate xml comments
+        //options.IncludeXmlComments(filePath);
+    });
 
 #endregion
 
 #region Versioning
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddApiVersioning(options =>
-{
-    options.ReportApiVersions = true;
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.ApiVersionReader = new UrlSegmentApiVersionReader();
-}).AddApiExplorer(options =>
-{
-    options.GroupNameFormat = "'v'VVV";
-    options.SubstituteApiVersionInUrl = true;
-});
-
+builder.Services.AddApiVersioning(
+                    options =>
+                    {
+                        // reporting api versions will return the headers
+                        // "api-supported-versions" and "api-deprecated-versions"
+                        options.ReportApiVersions = true;
+                        options.ApiVersionReader = new UrlSegmentApiVersionReader();
+                        options.AssumeDefaultVersionWhenUnspecified = true;
+                        options.Policies.Sunset(0.9)
+                                        .Effective(DateTimeOffset.Now.AddDays(60))
+                                        .Link("policy.html")
+                                            .Title("Versioning Policy")
+                                            .Type("text/html");
+                    })
+                .AddMvc()
+                .AddApiExplorer(
+                    options =>
+                    {
+                        // add the versioned api explorer, which also adds IApiVersionDescriptionProvider service
+                        // note: the specified format code will format the version as "'v'major[.minor][-status]"
+                        options.GroupNameFormat = "'v'VVV";
+                        // note: this option is only necessary when versioning by url segment. the SubstitutionFormat
+                        // can also be used to control the format of the API version in route templates
+                        options.SubstituteApiVersionInUrl = true;
+                    });
 #endregion
-
 
 #region Routing
 
@@ -140,7 +191,9 @@ if (app.Environment.IsDevelopment())
 
     app.UseSwaggerUI(options =>
     {
-        foreach (var description in apiVersionDescriptionDescriber.ApiVersionDescriptions)
+        var descriptions = app.DescribeApiVersions();
+
+        foreach (var description in descriptions)
             options.SwaggerEndpoint($"swagger/{description.GroupName}/swagger.json",
                 $"{builder.Configuration["Swagger:Name"]} V{description.ApiVersion}");
 
@@ -183,7 +236,7 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-app.UseSpaStaticFiles();
+//app.UseSpaStaticFiles();
 
 app.UseAuthentication();
 
