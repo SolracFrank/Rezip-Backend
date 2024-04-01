@@ -39,5 +39,26 @@ namespace WebApi.Controllers.V1
 
             return result.ToOk();
         }
+
+        [HttpDelete("{UserId}")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User", typeof(UserDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad request.", typeof(ValidationProblemDetails))]
+        public async Task<IActionResult> CreateUser([FromRoute] DeleteUserCommand command, CancellationToken cancellationToken)
+        {
+            var result = await Mediator.Send(command, cancellationToken);
+
+            return result.ToOk();
+        }
+        [HttpPatch("{id}")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User", typeof(UserDto))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad request.", typeof(ValidationProblemDetails))]
+        public async Task<IActionResult> UpdateUser([FromRoute]Guid id,[FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
+        {
+            command.UserId = id;
+
+            var result = await Mediator.Send(command, cancellationToken);
+
+            return result.ToOk();
+        }
     }
 }
