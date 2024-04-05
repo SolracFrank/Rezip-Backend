@@ -230,13 +230,19 @@ builder.Services.AddResponseCompression(options =>
 
 #region CORS
 
-if (isDevelopment)
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policyBuilder =>
         {
             policyBuilder.AllowAnyOrigin()
                 .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+
+        options.AddPolicy("Production", policyBuilder =>
+        {
+            policyBuilder.WithOrigins(builder.Configuration["CORS:AllowedDomains"].Split(","))
+                .WithMethods("POST", "PATCH", "PUT", "DELETE", "GET")
                 .AllowAnyHeader();
         });
     });
@@ -264,6 +270,10 @@ if (app.Environment.IsDevelopment())
 
     app.UseCors("AllowAll");
 }
+else
+{
+    app.UseCors("Production");
+}
 
 if (app.Environment.IsStaging() || app.Environment.IsProduction())
 {
@@ -282,13 +292,7 @@ if (app.Environment.IsStaging() || app.Environment.IsProduction())
         .ImageSources(s => s.Self())
         .ScriptSources(s => s.Self())
     );
-
-    app.Use(async (ctx, next) =>
-    {
-        ctx.Response.Headers.Add("Permissions-Policy",
-            "camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), usb=()");
-        await next();
-    });
+   
 }
 
 app.UseProblemDetails();
@@ -308,7 +312,5 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints => endpoints.MapControllers());
-
-app.UseSpa(spa => { spa.Options.SourcePath = "qrMiddlewareUi"; });
 
 app.Run();

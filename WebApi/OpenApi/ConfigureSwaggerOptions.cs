@@ -35,7 +35,7 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
         var text = new StringBuilder("This is an api.");
         var info = new OpenApiInfo
         {
-            Title = "QR. Middleware",
+            Title = "Rezip",
             Version = description.ApiVersion.ToString()
         };
 
