@@ -24,7 +24,7 @@ namespace Application.Features.Users.Handlers
         private readonly IUserService _userService;
         public async Task<Result<UserDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var authResult = await _userService.GetUser(cancellationToken);
+            var authResult =  _userService.GetUser();
             if (authResult.IsFaulted)
             {
                 return new Result<UserDto>(new UnAuthorizedException("Error al autenticar al usuario"));

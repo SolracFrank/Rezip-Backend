@@ -1,10 +1,10 @@
-﻿using Domain.Interfaces;
+﻿namespace Infrastructure;
+using Data;
+using Domain.Custom;
+using Domain.Interfaces;
+using Hellang.Middleware.ProblemDetails;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
-
-namespace Infrastructure;
-using Data;
-using Hellang.Middleware.ProblemDetails;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +14,8 @@ public static class DependencyInjections
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         ProblemDetailsExtensions.AddProblemDetails(services);
+        services.Configure<Auth0Claims>(configuration.GetSection("Auth0:Claims"));
+        services.Configure<Auth0Config>(configuration.GetSection("Auth0"));
 
         services.AddDbContext<RecipesDbContext>(options =>
             options.UseMySql(configuration.GetConnectionString("DbConn"), Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.30-mysql"),
@@ -21,9 +23,9 @@ public static class DependencyInjections
             );
 
         services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
-        services.AddTransient<IUnitOfWork,UnitOfWork>();
+        services.AddTransient<IUnitOfWork, UnitOfWork>();
         services.AddTransient<IUserService, UserService>();
-
+        services.AddTransient<IAuth0Service, Auth0Service>();
 
     }
 }

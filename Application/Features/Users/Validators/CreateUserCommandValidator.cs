@@ -25,14 +25,6 @@ namespace Application.Features.Users.Validators
                 .NotEmpty()
                 .MaximumLength(100).WithMessage("La longitud máxima de {PropertyName} es de 100");
 
-            RuleFor(r => r.Password)
-                .NotEmpty()
-                .MinimumLength(8)
-                .WithMessage("La contraseña debe tener al menos 8 caracteres")
-                .MaximumLength(25)
-                .WithMessage("La contraseña debe máximo 25 caracteres")
-                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,25}$")
-                .WithMessage("La contraseña debe contener al menos una letra en mayúscula, una en minúscula, un número y un carácter especial.");
 
         }
     }

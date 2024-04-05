@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure.Data.Configurations;
 using Domain.Entities;
+using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,23 +14,26 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(e => e.CreatedBy, "fk_user_creator_idx");
 
-        builder.Property(e => e.UserId)
-            .HasDefaultValueSql("UUID()")
-            .HasColumnName("user_id");
-        builder.Property(e => e.CreatedBy).HasColumnName("created_By");
+        builder.HasIndex(e => e.SubId, "sub_id_UNIQUE").IsUnique();
+
+        builder.Property(e => e.UserId).HasColumnName("user_id");
+        builder.Property(e => e.CreatedBy).HasColumnName("created_by");
         builder.Property(e => e.CreationDate)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .HasColumnType("datetime")
             .HasColumnName("creation_date");
+        builder.Property(e => e.Email)
+            .HasMaxLength(255)
+            .HasColumnName("email");
         builder.Property(e => e.Lastname)
             .HasMaxLength(100)
             .HasColumnName("lastname");
         builder.Property(e => e.Name)
             .HasMaxLength(100)
             .HasColumnName("name");
-        builder.Property(e => e.Password)
-            .HasMaxLength(25)
-            .HasColumnName("password");
+        builder.Property(e => e.SubId)
+            .HasMaxLength(250)
+            .HasColumnName("sub_id");
         builder.Property(e => e.UpdateDate)
             .ValueGeneratedOnAddOrUpdate()
             .HasDefaultValueSql("CURRENT_TIMESTAMP")

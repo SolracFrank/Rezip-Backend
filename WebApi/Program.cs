@@ -1,21 +1,27 @@
+using Application;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Hellang.Middleware.ProblemDetails;
+using Infrastructure;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Hellang.Middleware.ProblemDetails;
-using Infrastructure;
-using Application;
-using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApi.OpenApi;
-using Microsoft.OpenApi.Models;
+using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
 var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == Environments.Development;
 #region  Serilog
 Log.Logger = new LoggerConfiguration()
@@ -43,8 +49,62 @@ builder.Services.AddControllers(options =>
 #endregion
 
 #region Authentication and Authorization
+var domain = $"https://{builder.Configuration["Auth0:Domain"]}/";
 
+builder.Services.AddAuthentication(option =>
+{
 
+    option.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    option.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    option.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer("Auth0.Scheme", options =>
+    {
+        options.Authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ClockSkew = TimeSpan.FromSeconds(10),
+            ValidateIssuer = true,
+            ValidateLifetime = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = domain,
+            ValidAudience = builder.Configuration["Auth0:ApiIdentifier"],
+
+        ValidAudiences = new[] { builder.Configuration["Auth0:ApiIdentifier"] },
+            NameClaimType = ClaimTypes.NameIdentifier
+        };
+    }
+
+);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("admin", policy =>
+    {
+        policy.AddAuthenticationSchemes("Auth0.Scheme");
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new
+            HasScopeRequirement("update:all", domain));
+    });
+
+    options.AddPolicy("active", policy =>
+        {
+            policy.AddAuthenticationSchemes("Auth0.Scheme");
+            policy.RequireAuthenticatedUser();
+            policy.Requirements.Add(new
+                HasScopeRequirement("read:active", domain));
+        });
+
+    options.AddPolicy("authenticated", policy =>
+    {
+        policy.AddAuthenticationSchemes("Auth0.Scheme");
+        policy.RequireAuthenticatedUser();
+       
+    });
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 #endregion
 
 #region Infrastructure
@@ -154,6 +214,7 @@ builder.Services.AddHttpsRedirection(options =>
 
 #region HTTPContext
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 #endregion
 
 #region Compression
@@ -169,13 +230,19 @@ builder.Services.AddResponseCompression(options =>
 
 #region CORS
 
-if (isDevelopment)
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowAll", policyBuilder =>
         {
             policyBuilder.AllowAnyOrigin()
                 .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+
+        options.AddPolicy("Production", policyBuilder =>
+        {
+            policyBuilder.WithOrigins(builder.Configuration["CORS:AllowedDomains"].Split(","))
+                .WithMethods("POST", "PATCH", "PUT", "DELETE", "GET")
                 .AllowAnyHeader();
         });
     });
@@ -203,6 +270,10 @@ if (app.Environment.IsDevelopment())
 
     app.UseCors("AllowAll");
 }
+else
+{
+    app.UseCors("Production");
+}
 
 if (app.Environment.IsStaging() || app.Environment.IsProduction())
 {
@@ -221,13 +292,7 @@ if (app.Environment.IsStaging() || app.Environment.IsProduction())
         .ImageSources(s => s.Self())
         .ScriptSources(s => s.Self())
     );
-
-    app.Use(async (ctx, next) =>
-    {
-        ctx.Response.Headers.Add("Permissions-Policy",
-            "camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), usb=()");
-        await next();
-    });
+   
 }
 
 app.UseProblemDetails();
@@ -247,7 +312,5 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.UseEndpoints(endpoints => endpoints.MapControllers());
-
-app.UseSpa(spa => { spa.Options.SourcePath = "qrMiddlewareUi"; });
 
 app.Run();
