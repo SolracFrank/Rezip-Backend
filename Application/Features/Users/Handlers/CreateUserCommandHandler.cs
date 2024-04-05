@@ -25,7 +25,7 @@ namespace Application.Features.Users.Handlers
         private readonly IUserService _userService;
         public async Task<Result<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            var authResult = await _userService.GetUser(cancellationToken);
+            var authResult =  _userService.GetUser();
             if (authResult.IsFaulted)
             {
                 return new Result<UserDto>(new UnAuthorizedException("Error al autenticar al usuario"));
@@ -35,10 +35,10 @@ namespace Application.Features.Users.Handlers
 
             var validator = new CreateUserCommandValidator(_unitOfWork);
             var validationResult = await validator.ValidateAsync(request, cancellationToken);
-
+            _logger.LogInformation($"User got from handler {userAuthenticated?.Name}");
             if (!validationResult.IsValid)
             {
-                _logger.LogInformation("User with request id not exists.");
+                _logger.LogInformation("Validation Errors");
 
                 var validationException = new FluentValidation.ValidationException(validationResult.Errors);
 
@@ -48,11 +48,9 @@ namespace Application.Features.Users.Handlers
             var user = new User
             {
                 UserId = Guid.NewGuid(),
-                CreatedBy = userAuthenticated.UserId,
                 Username = request.Username,
                 Name = request.Name,
                 Lastname = request.Lastname,
-                Password = request.Password,
                 CreationDate = DateTime.UtcNow,
                 UpdateDate = DateTime.UtcNow
             };

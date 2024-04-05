@@ -12,7 +12,7 @@ namespace Application.Features.Users.Validators
 
             RuleFor(r => r.UserId)
                 .NotEmpty()
-                .MustAsync(async (id, ctx) => await unitOfWork.UserRepository.AnyAsync(u => u.UserId == id, ctx))
+                .MustAsync(async (id, ctx) => await unitOfWork.UserRepository.AnyAsync(u => u.SubId == id, ctx))
                 .WithMessage("El usuario a eliminar no existe");
         }
     }
