@@ -5,6 +5,7 @@ namespace Domain.Interfaces
 {
     public interface IUserService
     {
-        public Task<Result<UserAuthenticated>> GetUser(CancellationToken ctx);
+        public Result<UserAuthenticated> GetUser();
+
     }
 }
