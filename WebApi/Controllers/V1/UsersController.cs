@@ -1,6 +1,7 @@
 ﻿using Application.Features.Users.Commands;
 using Application.Features.Users.Queries;
 using Domain.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -8,6 +9,7 @@ namespace WebApi.Controllers.V1
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "active")]
     public class UsersController : BaseApiController
     {
         [HttpGet]
@@ -43,7 +45,7 @@ namespace WebApi.Controllers.V1
         [HttpDelete("{UserId}")]
         [SwaggerResponse(StatusCodes.Status200OK, "User", typeof(UserDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad request.", typeof(ValidationProblemDetails))]
-        public async Task<IActionResult> CreateUser([FromRoute] DeleteUserCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteUser([FromRoute] DeleteUserCommand command, CancellationToken cancellationToken)
         {
             var result = await Mediator.Send(command, cancellationToken);
 
