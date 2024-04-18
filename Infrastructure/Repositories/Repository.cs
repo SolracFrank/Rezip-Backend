@@ -6,6 +6,7 @@ using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using System.Threading;
 
 public class Repository<T> : IRepository<T> where T : class
 {
@@ -132,5 +133,19 @@ public class Repository<T> : IRepository<T> where T : class
     public async Task<T?> FindAsync(CancellationToken cancellationToken, params object[] id)
     {
         return await Entities.FindAsync(id, cancellationToken);
+    }
+
+    public IQueryable<T> Where(Expression<Func<T, bool>> predicate)
+    {
+        try
+        {
+            return  Entities.Where(predicate);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "An exception has occurred {Message}.", ex.Message);
+
+            throw new InfraestructureException(DefaultDatabaseErrorMessage);
+        }
     }
 }

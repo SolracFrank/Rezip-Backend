@@ -1,7 +1,6 @@
 ﻿namespace Infrastructure.Repositories;
-
-using Data;
 using Domain.Entities;
+using Data;
 using Domain.Exceptions;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -14,18 +13,24 @@ public class UnitOfWork : IUnitOfWork
 
     public UnitOfWork(RecipesDbContext context, ILogger<UnitOfWork> logger,
      IRepository<User> userRepository,
-     IRepository<Recipe> recipeRepository)
+     IRepository<Recipe> recipeRepository,
+     IRepository<RecipeLogo> recipeLogoRepository, IRepository<UserFavoritesRecipe> userFavoriteRepository, IRepository<Comment> commentRepository)
     {
         _context = context;
         _logger = logger;
         UserRepository = userRepository;
         RecipeRepository = recipeRepository;
+        RecipeLogoRepository = recipeLogoRepository;
+        UserFavoriteRepository = userFavoriteRepository;
+        CommentRepository = commentRepository;
     }
-
-
 
     public IRepository<User> UserRepository { get; }
     public IRepository<Recipe> RecipeRepository { get; }
+    public IRepository<RecipeLogo> RecipeLogoRepository { get; }
+    public IRepository<UserFavoritesRecipe> UserFavoriteRepository { get; }
+    public IRepository<Comment> CommentRepository { get; }
+
 
 
     public bool SaveChanges()
