@@ -8,7 +8,8 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.HasKey(e => e.UserId).HasName("PRIMARY");
+
+        builder.HasKey(e => e.SubId).HasName("PRIMARY");
 
         builder.ToTable("user");
 
@@ -16,8 +17,12 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(e => e.SubId, "sub_id_UNIQUE").IsUnique();
 
-        builder.Property(e => e.UserId).HasColumnName("user_id");
-        builder.Property(e => e.CreatedBy).HasColumnName("created_by");
+        builder.Property(e => e.SubId)
+            .HasMaxLength(250)
+            .HasColumnName("sub_id");
+        builder.Property(e => e.CreatedBy)
+            .HasMaxLength(250)
+            .HasColumnName("created_by");
         builder.Property(e => e.CreationDate)
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .HasColumnType("datetime")
@@ -31,9 +36,6 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(e => e.Name)
             .HasMaxLength(100)
             .HasColumnName("name");
-        builder.Property(e => e.SubId)
-            .HasMaxLength(250)
-            .HasColumnName("sub_id");
         builder.Property(e => e.UpdateDate)
             .ValueGeneratedOnAddOrUpdate()
             .HasDefaultValueSql("CURRENT_TIMESTAMP")
@@ -45,7 +47,6 @@ internal class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasOne(d => d.CreatedByNavigation).WithMany(p => p.InverseCreatedByNavigation)
             .HasForeignKey(d => d.CreatedBy)
-            .OnDelete(DeleteBehavior.SetNull)
             .HasConstraintName("fk_user_creator");
     }
 }
