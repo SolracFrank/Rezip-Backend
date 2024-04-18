@@ -88,7 +88,6 @@ namespace Application.Features.Account.Handlers
                 Username = user.Name,
                 Email = user.Name,
                 SubId = user.UserId,
-                UserId = Guid.NewGuid(),
             };
 
             await _unitOfWork.UserRepository.AddAsync(newUser, cancellationToken);

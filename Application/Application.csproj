@@ -12,13 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Recipes\Commands\" />
-    <Folder Include="Features\Recipes\Handlers\" />
-    <Folder Include="Features\Recipes\Validators\" />
-    <Folder Include="Features\Recipes\Queries\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
