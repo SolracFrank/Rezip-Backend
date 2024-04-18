@@ -54,7 +54,7 @@ namespace WebApi.Controllers.V1
         [HttpPatch("{id}")]
         [SwaggerResponse(StatusCodes.Status200OK, "User", typeof(UserDto))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad request.", typeof(ValidationProblemDetails))]
-        public async Task<IActionResult> UpdateUser([FromRoute] Guid id, [FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> UpdateUser([FromRoute] string id, [FromBody] UpdateUserCommand command, CancellationToken cancellationToken)
         {
             command.UserId = id;
 

@@ -16,9 +16,9 @@ namespace WebApi.Controllers.V1
 
         }
         [HttpGet]
-        public async Task<ActionResult> Hello()
+        public  IActionResult Hello()
         {
-            return Ok("Hola mundo");
+            return  Ok("Hola mundo");
         }
         [HttpGet("name/{name}")]
         [SwaggerResponse(StatusCodes.Status200OK, "refreshing succesful")]
