@@ -6,9 +6,10 @@ namespace Application.Features.Users.Queries
 {
     public class GetUserByIdQuery : IRequest<Result<UserDto>>
     {
-        public Guid UserId
+        public string UserId
         {
-            get; set;
-        }
+            get;
+            set;
+        } = null!;
     }
 }

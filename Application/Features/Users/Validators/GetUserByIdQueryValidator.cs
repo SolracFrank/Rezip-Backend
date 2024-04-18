@@ -12,7 +12,7 @@ namespace Application.Features.Users.Validators
 
             RuleFor(u => u.UserId)
                 .NotEmpty()
-                .MustAsync(async (id, cancellationToken) => await unitOfWork.UserRepository.AnyAsync(u => u.UserId == id, cancellationToken))
+                .MustAsync(async (id, cancellationToken) => await unitOfWork.UserRepository.AnyAsync(u => u.SubId == id, cancellationToken))
                 .WithMessage("Usuario no encontrado");
         }
     }

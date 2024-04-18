@@ -8,7 +8,7 @@ namespace Application.Features.Users.Validators
     {
         public DeleteUserCommandValidator(IUnitOfWork unitOfWork)
         {
-            CascadeMode = CascadeMode.Stop;
+            RuleLevelCascadeMode = CascadeMode.Stop;
 
             RuleFor(r => r.UserId)
                 .NotEmpty()

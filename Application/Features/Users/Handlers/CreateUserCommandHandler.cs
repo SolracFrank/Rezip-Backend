@@ -47,7 +47,7 @@ namespace Application.Features.Users.Handlers
 
             var user = new User
             {
-                UserId = Guid.NewGuid(),
+                //UserId = Guid.NewGuid(),
                 Username = request.Username,
                 Name = request.Name,
                 Lastname = request.Lastname,

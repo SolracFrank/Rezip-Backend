@@ -6,7 +6,7 @@ namespace Application.Features.Users.Commands
 {
     public class UpdateUserCommand : IRequest<Result<UserDto>>
     {
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
 
         public string Name { get; set; } = null!;
 
