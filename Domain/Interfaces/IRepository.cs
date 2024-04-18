@@ -31,4 +31,7 @@ public interface IRepository<TEntity> where TEntity : class
 
     Task<TEntity?> FindAsync(CancellationToken cancellationToken, params object[] id);
 
+    IQueryable<TEntity> Where(Expression<Func<TEntity, bool>> predicate);
+
+
 }

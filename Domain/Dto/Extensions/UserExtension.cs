@@ -8,7 +8,7 @@ namespace Domain.Dto.Extensions
         {
             return new UserDto
             {
-                UserId = user.UserId,
+                UserId = user.SubId,
                 Lastname =user.Lastname,
                 Name = user.Name,
                 Username = user.Username,

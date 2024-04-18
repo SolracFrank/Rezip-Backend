@@ -1,6 +1,4 @@
 ﻿namespace Domain.Entities;
-using System;
-
 
 public partial class Recipe
 {
@@ -12,8 +10,13 @@ public partial class Recipe
 
     public string Procedures { get; set; } = null!;
 
-    public Guid CreatedBy { get; set; }
-    public virtual User CreatedByNavigation { get; set; } = null!;
+    public string? CreatedBy { get; set; }
+
+    public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    public virtual User? CreatedByNavigation { get; set; }
+
     public virtual RecipeLogo? RecipeLogo { get; set; }
 
+    public virtual ICollection<UserFavoritesRecipe> UserFavoritesRecipes { get; set; } = new List<UserFavoritesRecipe>();
 }
